@@ -1,0 +1,19 @@
+#+title: Josh Holbrook's Public Work-Appropriate Software
+
+* Hello
+This repository contains my open source and source-available code which I
+would want to clone and use at work.
+
+For the rest of my publicly available software, check out [[https://github.com/jfhbrook/public][my main public software
+repository]].
+* Contents
+** db_hooks
+This is the toolset I made for myself to manage database stuff on my personal
+machines. It is licensed under an Apache v2.0 license with additional
+restrictions. See the included NOTICE file for details.
+** twisted_ipython
+This is a module that makes autoawait work in IPython using Twisted. It is
+licened under a BSD 3-clause license with additional restrictions. See
+the included NOTICE file for details.
+
+For more information, read [[https://dev.to/jfhbrook/twistedipython-autoawait-in-jupyter-notebooks-with-twisted-lee][the blog post on dev.to]].
