@@ -20,7 +20,7 @@ import logging
 import json
 import os
 import os.path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from appdirs import user_data_dir
 import attr
@@ -79,7 +79,7 @@ class DatabaseConfig:
 @attr.s
 class CacheConfig:
     type: str = attr.ib(default="LRUCache")
-    kwargs: dict = attr.ib(default=dict(maxsize=512))
+    kwargs: Dict[str, Any] = attr.ib(default=dict(maxsize=512))
 
 
 @attr.s
