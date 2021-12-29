@@ -73,7 +73,7 @@ class DatabaseConfig:
     database: Optional[str] = attr.ib(default=None)
     password: Optional[str] = attr.ib(default=None)
     password_cmd: Optional[str] = attr.ib(default=None)
-    cmd: Optional[str] = attr.ib(default=None)
+    command: Optional[str] = attr.ib(default=None)
 
 
 @attr.s

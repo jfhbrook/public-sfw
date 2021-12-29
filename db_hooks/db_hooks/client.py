@@ -82,17 +82,22 @@ class Client(ABC):
         env = dict()
         get_password = PasswordMemoizer(self)
 
-        argv = shlex.split(
-            (self.connection_config.command or self.command).format(
-                **{
-                    k: get_password() if k == "password" else v if v else "<?>"
-                    for k, v in attr.asdict(self.connection_config).items()
-                }
-            )
-        )
+        command = self.connection_config.command or self.command
+        kwargs = {
+                k: v
+                for k, v in attr.asdict(self.connection_config).items()
+                if k not in {"password", "has_password"}
+        }
+
+        if self.connection_config.has_password and not self.connection_config.password:
+            kwargs["password"] = get_password()
+        else:
+            kwargs["password"] = None
+
+        argv = shlex.split(command.format(**kwargs))
 
         for env_key, conn_key in self.env:
-            if conn_key == "password":
+            if conn_key == "password" and self.connection_config.has_password:
                 env_val = get_password()
             else:
                 env_val = getattr(self.connection_config, conn_key, None)
@@ -122,6 +127,9 @@ class PostgreSQLClient(Client):
     command = "psql -U '{username}' -h '{host}' -p '{port}' -d '{database}'"
 
     def side_effects(self, argv, env):
+        if not self.connection_config.has_password:
+            return
+
         if self.config.pgpass.enable:
             pgpass = PgPass.from_config(self.config)
 
