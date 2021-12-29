@@ -84,9 +84,9 @@ class Client(ABC):
 
         command = self.connection_config.command or self.command
         kwargs = {
-                k: v
-                for k, v in attr.asdict(self.connection_config).items()
-                if k not in {"password", "has_password"}
+            k: v
+            for k, v in attr.asdict(self.connection_config).items()
+            if k not in {"password", "has_password"}
         }
 
         if self.connection_config.has_password and not self.connection_config.password:
@@ -128,7 +128,7 @@ class PostgreSQLClient(Client):
 
     def side_effects(self, argv, env):
         if not self.connection_config.has_password:
-            return
+            return (argv, env)
 
         if self.config.pgpass.enable:
             pgpass = PgPass.from_config(self.config)
