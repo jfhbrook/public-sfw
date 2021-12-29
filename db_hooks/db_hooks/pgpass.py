@@ -194,11 +194,15 @@ class PgPass:
 
     def read(self):
         logger.info(f"Reading {self._filename}...")
-        with open(self._filename, "r") as f:
-            raw = f.read()
-        for line in raw.split("\n"):
-            if line:
-                self._data.append(PgPassEntry.parse(line))
+        try:
+            with open(self._filename, "r") as f:
+                raw = f.read()
+        except FileNotFoundError:
+            pass
+        else:
+            for line in raw.split("\n"):
+                if line:
+                    self._data.append(PgPassEntry.parse(line))
 
     @classmethod
     def from_config(cls, config):

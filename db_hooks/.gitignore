@@ -3,3 +3,5 @@ db_hooks.egg-info
 build
 dist
 scratchpad.ipynb
+
+venv

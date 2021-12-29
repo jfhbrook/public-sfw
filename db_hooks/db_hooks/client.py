@@ -19,7 +19,10 @@
 from abc import ABC
 import logging
 import os
+import shlex
 import shutil
+
+import attr
 
 from db_hooks.errors import ClientNotFoundError
 from db_hooks.password import PasswordLoader
@@ -41,10 +44,8 @@ class PasswordMemoizer:
 
 
 class Client(ABC):
-    bin = None
-    options = []
-    parameters = []
-    env = []
+    command = None
+    env = None
 
     def __init__(self, config, connection_name):
         self.config = config
@@ -55,6 +56,7 @@ class Client(ABC):
             if self.connection_config.has_password
             else None
         )
+        self.env = self.env or dict()
 
     @classmethod
     def from_config(cls, config, connection_name):
@@ -77,30 +79,25 @@ class Client(ABC):
         return argv, env
 
     def get_command(self):
-        argv = [self.bin]
         env = dict()
-
         get_password = PasswordMemoizer(self)
 
-        for cli_key, conn_key in self.options:
-            if conn_key == "password":
-                conn_val = get_password()
-            else:
-                conn_val = getattr(self.connection_config, conn_key, None)
-            if conn_val:
-                argv.append(cli_key)
-                argv.append(str(conn_val))
+        command = self.connection_config.command or self.command
+        kwargs = {
+            k: v
+            for k, v in attr.asdict(self.connection_config).items()
+            if k not in {"password", "has_password"}
+        }
 
-        for conn_key in self.parameters:
-            if conn_key == "password":
-                parameter = get_password()
-            else:
-                parameter = getattr(self.connection_config, conn_key, None)
-            if parameter:
-                argv.append(str(parameter))
+        if self.connection_config.has_password and not self.connection_config.password:
+            kwargs["password"] = get_password()
+        else:
+            kwargs["password"] = None
+
+        argv = shlex.split(command.format(**kwargs))
 
         for env_key, conn_key in self.env:
-            if conn_key == "password":
+            if conn_key == "password" and self.connection_config.has_password:
                 env_val = get_password()
             else:
                 env_val = getattr(self.connection_config, conn_key, None)
@@ -127,10 +124,12 @@ class Client(ABC):
 
 
 class PostgreSQLClient(Client):
-    bin = "psql"
-    options = [("-U", "username"), ("-h", "host"), ("-p", "port"), ("-d", "database")]
+    command = "psql -U '{username}' -h '{host}' -p '{port}' -d '{database}'"
 
     def side_effects(self, argv, env):
+        if not self.connection_config.has_password:
+            return (argv, env)
+
         if self.config.pgpass.enable:
             pgpass = PgPass.from_config(self.config)
 
@@ -148,19 +147,14 @@ class PostgreSQLClient(Client):
 
 
 class MySQLClient(Client):
-    bin = "mysql"
-    options = [
-        ("--user", "username"),
-        ("--host", "host"),
-        ("--port", "port"),
-        ("--password", "password"),
-    ]
-    parameters = ["database"]
+    command = (
+        "mysql --user '{username}' --host '{host}' --port '{port}' "
+        "--password '{password}' '{database}"
+    )
 
 
 class SqliteClient(Client):
-    bin = "sqlite3"
-    parameters = ["database"]
+    command = "sqlite3 '{database}'"
 
 
 CLIENTS = {
