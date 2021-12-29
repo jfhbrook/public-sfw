@@ -10,7 +10,7 @@ You can edit or create this file in your `$EDITOR` by running `db_hooks edit`. F
 
 |         os | location                                                |
 |------------|---------------------------------------------------------|
-|      linux | `~/.local/share/db_hooks/databases.toml`                |
+|      linux | `~/.config/db_hooks/databases.toml`                |
 |        osx | `~/Library/Application Support/db_hooks/databases.toml` |
 | windows 10 | `~\AppData\local\jfhbrook\db_hooks`                     |
 
@@ -28,6 +28,7 @@ Connections names are nested under the `connections` namespace. Under those are 
 * `host` - the database host.
 * `port` - the database port.
 * `database` - the database name.
+* `command` - A Python f-string-templated command for connecting to the database through the CLI. Each protocol has a default, but this lets you override it.
 * `password_cmd` - a connection-specific override for the `password_cmd`. By default, a connection will use the globally-set `password_cmd`.
 
 For a very simple example, a local postgres connection might looks like this:
